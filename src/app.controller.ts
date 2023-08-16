@@ -12,6 +12,26 @@ import { AppService } from './app.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Response, Request } from 'express';
+import { ApiProperty } from '@nestjs/swagger';
+
+class RegisterDto {
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  email: string;
+
+  @ApiProperty()
+  password: string;
+}
+
+class LoginDto {
+  @ApiProperty()
+  email: string;
+
+  @ApiProperty()
+  password: string;
+}
 
 @Controller('api')
 export class AppController {
@@ -21,11 +41,9 @@ export class AppController {
   ) {}
 
   @Post('register')
-  async register(
-    @Body('name') name: string,
-    @Body('email') email: string,
-    @Body('password') password: string,
-  ) {
+  async register(@Body() registerDto: RegisterDto) {
+    const { name, email, password } = registerDto;
+
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = await this.appService.create({
@@ -41,10 +59,10 @@ export class AppController {
 
   @Post('login')
   async login(
-    @Body('email') email: string,
-    @Body('password') password: string,
     @Res({ passthrough: true }) response: Response,
+    @Body() loginDto: LoginDto,
   ) {
+    const { email, password } = loginDto;
     const user = await this.appService.findOne({ where: { email } });
 
     if (!user) {
